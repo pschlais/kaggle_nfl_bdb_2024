@@ -49,21 +49,22 @@ TEAM_COLORS = {'ARI': {'main': _rgb(155, 35, 63), 'secondary': _rgb(255, 255, 25
 
 # -------------- FUNCTIONS -------------------------------------------
 def base_import(base_path: str = 'csv', week: int = 1) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Imports DataFrames of data
-    :param base_path: [str] folder path containing csv files
-    :param week: [int] week number of tracking data to import (1-17)
-    :return: tuple of dataframes (games, plays, players, coverages, targeted_receiver, track_data)
-    """
-    track_file_name = 'week' + str(week) + '.csv'
-    game_df = pd.read_csv(os.path.join(base_path, 'games.csv'))
-    play_df = pd.read_csv(os.path.join(base_path, 'plays.csv'))
-    players_df = pd.read_csv(os.path.join(base_path, 'players.csv'))
-    coverage_df = pd.read_csv(os.path.join(base_path, 'coverages_week1.csv'))
-    target_df = pd.read_csv(os.path.join(base_path, 'targetedReceiver.csv'))
-    track_df = pd.read_csv(os.path.join(base_path, track_file_name))
+    # """
+    # Imports DataFrames of data
+    # :param base_path: [str] folder path containing csv files
+    # :param week: [int] week number of tracking data to import (1-17)
+    # :return: tuple of dataframes (games, plays, players, coverages, targeted_receiver, track_data)
+    # """
+    # track_file_name = 'week' + str(week) + '.csv'
+    # game_df = pd.read_csv(os.path.join(base_path, 'games.csv'))
+    # play_df = pd.read_csv(os.path.join(base_path, 'plays.csv'))
+    # players_df = pd.read_csv(os.path.join(base_path, 'players.csv'))
+    # coverage_df = pd.read_csv(os.path.join(base_path, 'coverages_week1.csv'))
+    # target_df = pd.read_csv(os.path.join(base_path, 'targetedReceiver.csv'))
+    # track_df = pd.read_csv(os.path.join(base_path, track_file_name))
 
-    return game_df, play_df, players_df, coverage_df, target_df, track_df
+    # return game_df, play_df, players_df, coverage_df, target_df, track_df
+    pass # the above code is only relevant for the 2021 Big Data Bowl
 
 
 def get_frame_of_event(track_df: pd.DataFrame, event_name: str | list[str] | tuple[str]) -> pd.DataFrame:

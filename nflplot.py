@@ -19,18 +19,20 @@ class PlayAnimation:
     Creates an animation for a given play. Stored in "animation" property of object.
     """
 
-    def __init__(self, track_df, play_df, game_df, game_id, play_id, fig_x_dim=16):
+    def __init__(self, track_df, play_df, game_df, player_df, game_id, play_id, fig_x_dim=16):
         """
-        :param track_df: DataFrame from 'weekX.csv' files
+        :param track_df: DataFrame from 'tracking_week_X.csv' files
         :param play_df: DataFrame from 'plays.csv' file
         :param game_df: DataFrame from 'games.csv' file
+        :param player_df: DataFrame from 'players.csv' file
         :param game_id: gameId of play to plot
         :param play_id: playId of play to plot
         :param fig_x_dim: x-dimension size of output figure
         """
         # Filter down DataFrames to the specific play (tracks, game, and play info)
         track_df = track_df[(track_df.gameId == game_id) & (track_df.playId == play_id)].sort_values('frameId')
-        track_df = track_df.drop_duplicates()
+        # drop duplicate frames (just in case), and merge with players to append position
+        track_df = track_df.drop_duplicates().merge(player_df[['nflId', 'position']], on='nflId', how='left')
         game_df = game_df[game_df.gameId == game_id].iloc[0]
         play_df = play_df[(play_df.gameId == game_id) & (play_df.playId == play_id)].iloc[0]
 
@@ -43,13 +45,18 @@ class PlayAnimation:
                        + f'[{game_df.gameDate}, {game_df.visitorTeamAbbr} @ {game_df.homeTeamAbbr}] '
                        + f'[gameId={game_id}, playId={play_id}]')
 
+        # extract club information for the play
+        self._club_abbr = track_df.loc[(track_df.club != 'football')].club.unique().tolist()
+        assert len(self._club_abbr) == 2  # enforce that there are only 2 clubs for the play in question
+
+
         # first down marker
         self._first_down_distance = play_df.yardsToGo
 
         # set properties
         self._num_players = len(track_df.nflId.unique())
-        self._team_colors = {'home': TEAM_COLORS[game_df.homeTeamAbbr],
-                             'away': TEAM_COLORS[game_df.visitorTeamAbbr]}
+        self._team_colors = {self._club_abbr[0]: TEAM_COLORS[self._club_abbr[0]],
+                             self._club_abbr[1]: TEAM_COLORS[self._club_abbr[1]]}
         self._frame_data = track_df
         self._frame_ids = track_df['frameId'].copy().sort_values().unique()
 
@@ -64,10 +71,10 @@ class PlayAnimation:
         
         # scatter plot entities - placeholders
         self._scat_fb = self._ax_play.scatter([], [], s=100, color='brown')
-        self._scat_home = self._ax_play.scatter([], [], s=250, color=self._team_colors['home']['main'],
-                                                edgecolors=self._team_colors['home']['secondary'])
-        self._scat_away = self._ax_play.scatter([], [], s=250, color=self._team_colors['away']['main'],
-                                                edgecolors=self._team_colors['away']['secondary'])
+        self._scat_club1 = self._ax_play.scatter([], [], s=250, color=self._team_colors[self._club_abbr[0]]['main'],
+                                                edgecolors=self._team_colors[self._club_abbr[0]]['secondary'])
+        self._scat_club2 = self._ax_play.scatter([], [], s=250, color=self._team_colors[self._club_abbr[1]]['main'],
+                                                edgecolors=self._team_colors[self._club_abbr[1]]['secondary'])
 
         # containers for player plot entities
         self._scat_position_list = []
@@ -100,7 +107,7 @@ class PlayAnimation:
         self._ax_base.set_title(self._title)
 
         # plot the line of scrimmage
-        los = self._frame_data.loc[(self._frame_data.team == 'football'), 'x'].iloc[0]
+        los = self._frame_data.loc[(self._frame_data.club == 'football'), 'x'].iloc[0]
         self._ax_base.axvline(los, color='k', linestyle='--')
 
         # plot the first down marker
@@ -146,7 +153,7 @@ class PlayAnimation:
             self._plot_track_list.append(self._ax_play.plot([], [], alpha=0.5))
 
         # for animation construction, return all of the plot objects that can change between frames
-        return (self._scat_fb, self._scat_home, self._scat_away, *self._scat_position_list, *self._scat_number_list,
+        return (self._scat_fb, self._scat_club1, self._scat_club2, *self._scat_position_list, *self._scat_number_list,
                 *self._scat_name_list, *self._plot_track_list)
 
     def update(self, anim_frame):
@@ -163,15 +170,15 @@ class PlayAnimation:
         self._text_event.set_text(f'Event: {frame_event}')
 
         # plot the dots for home team, away team, and football
-        for label in pos_df.team.unique():
-            label_data = pos_df[pos_df.team == label]
+        for label in self._club_abbr:
+            label_data = pos_df[pos_df.club == label]
 
             if label == 'football':
                 self._scat_fb.set_offsets(np.hstack([label_data.x, label_data.y]))
-            elif label == 'home':
-                self._scat_home.set_offsets(np.vstack([label_data.x, label_data.y]).T)
-            elif label == 'away':
-                self._scat_away.set_offsets(np.vstack([label_data.x, label_data.y]).T)
+            elif label == self._club_abbr[0]:
+                self._scat_club1.set_offsets(np.vstack([label_data.x, label_data.y]).T)
+            elif label == self._club_abbr[1]:
+                self._scat_club2.set_offsets(np.vstack([label_data.x, label_data.y]).T)
 
         # get tracking data for current play for all players (i.e. not the football)
         player_df = pos_df[pos_df.jerseyNumber.notnull()]
@@ -181,24 +188,24 @@ class PlayAnimation:
             # position of each player
             self._scat_position_list[index].set_position((player.x, player.y))  # inside dot
             self._scat_position_list[index].set_text(player.position)  # position (QB, RB, etc.)
-            self._scat_position_list[index].set_color(self._team_colors[player.team]['secondary'])  # text color
+            self._scat_position_list[index].set_color(self._team_colors[player.club]['secondary'])  # text color
             # number of each player
             self._scat_number_list[index].set_position((player.x, player.y + 1.6))  # above dot
             self._scat_number_list[index].set_text(int(player.jerseyNumber))  # number
-            self._scat_number_list[index].set_color(self._team_colors[player.team]['main'])  # text color
+            self._scat_number_list[index].set_color(self._team_colors[player.club]['main'])  # text color
             # name of each player
             self._scat_name_list[index].set_position((player.x, player.y - 1.7))  # below dot
             self._scat_name_list[index].set_text(player.displayName.split()[-1])  # last name only
-            self._scat_name_list[index].set_color(self._team_colors[player.team]['main'])  # text color
+            self._scat_name_list[index].set_color(self._team_colors[player.club]['main'])  # text color
             # track of each player from the previous frames
             self._plot_track_list[index][0].set_data(hist_df[hist_df.nflId == player.nflId]['x'],
                                                      hist_df[hist_df.nflId == player.nflId]['y'])
-            self._plot_track_list[index][0].set_color(self._team_colors[player.team]['main'])
+            self._plot_track_list[index][0].set_color(self._team_colors[player.club]['main'])
 
             # player_speed = player.s
 
         # return the updated plot objects
-        return (self._scat_fb, self._scat_home, self._scat_away, *self._scat_position_list, *self._scat_number_list,
+        return (self._scat_fb, self._scat_club1, self._scat_club2, *self._scat_position_list, *self._scat_number_list,
                 *self._scat_name_list, *self._plot_track_list)
 
 # -------- FUNCTIONS --------------------------------- ###
