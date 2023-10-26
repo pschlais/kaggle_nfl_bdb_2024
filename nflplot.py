@@ -49,8 +49,11 @@ class PlayAnimation:
         self._club_abbr = track_df.loc[(track_df.club != 'football')].club.unique().tolist()
         assert len(self._club_abbr) == 2  # enforce that there are only 2 clubs for the play in question
 
-
-        # first down marker
+        # info about play to make available for plotting methods
+        self._play_direction = track_df.playDirection.iloc[0]
+        self._defensive_team = play_df.defensiveTeam
+        self._yardline_side = play_df.yardlineSide
+        self._yardline_number = play_df.yardlineNumber
         self._first_down_distance = play_df.yardsToGo
 
         # set properties
@@ -106,13 +109,29 @@ class PlayAnimation:
         # set the title
         self._ax_base.set_title(self._title)
 
+        # determine what orientation/side line of scrimmage and first down marker need to be plotted
+        if self._play_direction == 'left':
+            X_START = 110  # goal line starts at X = 110
+            DIRECTION_SIGN = -1
+        else:  # play_direction == 'right'
+            X_START = 10 # goal line starts at X = 10
+            DIRECTION_SIGN = 1
+        
+        # determine if the ball has passed the 50 yard line or not to get a 0-100 yardline value for LOS and first down marker
+        if self._yardline_side == self._defensive_team:
+            # ball has passed 50 yard line
+            yardline_abs = 100 - self._yardline_number
+        else: # offense is on its own side of midfield
+            yardline_abs = self._yardline_number
+        firstdown_abs = yardline_abs + self._first_down_distance
+
         # plot the line of scrimmage
-        los = self._frame_data.loc[(self._frame_data.club == 'football'), 'x'].iloc[0]
+        los = X_START + DIRECTION_SIGN * yardline_abs
         self._ax_base.axvline(los, color='k', linestyle='--')
 
         # plot the first down marker
-        dir_factor = 1 if self._frame_data.playDirection.iloc[0] == 'right' else -1
-        self._ax_base.axvline(los + dir_factor * self._first_down_distance, color='darkorange', linestyle='-')
+        firstdown_x = X_START + DIRECTION_SIGN * firstdown_abs
+        self._ax_base.axvline(firstdown_x, color='darkorange', linestyle='-')
 
         # plot the sidelines
         for side_line in [0, FIELD_SIZE_Y]:
