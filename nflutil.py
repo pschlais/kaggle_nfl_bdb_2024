@@ -100,7 +100,7 @@ def remove_abnormal_frames(track_df: pd.DataFrame, bad_frame_list: list[tuple[in
 
 def transform_tracking_data(track_df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame | None:
     """
-    Standardizes the tracking data so that all offensive plays have the same reference frame (Madden camera)
+    Standardizes the tracking data so that all offensive plays have the same reference frame (i.e. moving from left to right)
 
     Transforms all positional attributes: x, y, o, dir. Returns a copy of the dataframe. Increasing x is downfield for
     the offense, increasing y is towards the left sideline
@@ -120,10 +120,13 @@ def transform_tracking_data(track_df: pd.DataFrame, inplace: bool = False) -> pd
     out_df.loc[i_left, 'x'] = FIELD_SIZE_X - out_df.loc[i_left, 'x']
     out_df.loc[i_left, 'y'] = FIELD_SIZE_Y - out_df.loc[i_left, 'y']
 
-    # convert the orientations so that 0 points to left sideline
+    # convert the orientations so that 0 points to upper sideline
     # - see figure here for more info (https://www.kaggle.com/c/nfl-big-data-bowl-2021/data)
     out_df.loc[i_left, 'o'] = (out_df.loc[i_left, 'o'] + 180) % 360
     out_df.loc[i_left, 'dir'] = (out_df.loc[i_left, 'dir'] + 180) % 360
+
+    # change direction to 'right'
+    out_df.loc[i_left, 'playDirection'] = 'right'
 
     if inplace:
         return None  # modified inplace
