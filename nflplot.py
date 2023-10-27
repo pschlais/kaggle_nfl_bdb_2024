@@ -189,7 +189,7 @@ class PlayAnimation:
         self._text_event.set_text(f'Event: {frame_event}')
 
         # plot the dots for home team, away team, and football
-        for label in self._club_abbr:
+        for label in [*self._club_abbr, 'football']:
             label_data = pos_df[pos_df.club == label]
 
             if label == 'football':
