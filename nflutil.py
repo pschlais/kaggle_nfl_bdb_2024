@@ -37,7 +37,7 @@ TEAM_COLORS = {'ARI': {'main': _rgb(155, 35, 63), 'secondary': _rgb(255, 255, 25
                'NO': {'main': _rgb(211, 188, 141), 'secondary': _rgb(16, 24, 31)},
                'NYG': {'main': _rgb(1, 35, 82), 'secondary': _rgb(163, 13, 45)},
                'NYJ': {'main': _rgb(18, 87, 64), 'secondary': _rgb(255, 255, 255)},
-               'OAK': {'main': _rgb(0, 0, 0), 'secondary': _rgb(165, 172, 175)},
+               'LV': {'main': _rgb(0, 0, 0), 'secondary': _rgb(165, 172, 175)},
                'PHI': {'main': _rgb(0, 76, 84), 'secondary': _rgb(165, 172, 175)},
                'PIT': {'main': _rgb(16, 24, 32), 'secondary': _rgb(255, 182, 18)},
                'SEA': {'main': _rgb(0, 34, 68), 'secondary': _rgb(105, 190, 40)},
