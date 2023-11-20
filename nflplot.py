@@ -45,6 +45,9 @@ class PlayAnimation:
                        + f'[{game_df.gameDate}, {game_df.visitorTeamAbbr} @ {game_df.homeTeamAbbr}] '
                        + f'[gameId={game_id}, playId={play_id}]')
 
+        # get the play description
+        self._play_desc = play_df.playDescription
+
         # extract club information for the play
         self._club_abbr = track_df.loc[(track_df.club != 'football')].club.unique().tolist()
         assert len(self._club_abbr) == 2  # enforce that there are only 2 clubs for the play in question
@@ -71,6 +74,7 @@ class PlayAnimation:
         # frame information entities - placeholders
         self._text_frame_id = self._ax_base.text(1, 5, '')
         self._text_event = self._ax_base.text(1, 3, '')
+        self._text_play_desc = self._ax_base.text(1, -3, '')
         
         # scatter plot entities - placeholders
         self._scat_fb = self._ax_play.scatter([], [], s=100, color='brown')
@@ -108,6 +112,9 @@ class PlayAnimation:
 
         # set the title
         self._ax_base.set_title(self._title)
+
+        # set the play description
+        self._text_play_desc.set_text(f'{self._play_desc}')
 
         # determine what orientation/side line of scrimmage and first down marker need to be plotted
         if self._play_direction == 'left':
