@@ -40,7 +40,7 @@ class PlayAnimation:
         # Example: '(2Q 10:33) ATL Possession, 3rd & 5 at ATL 32 [09-08-2018, ATL @ KC] [gameId=1234, playId=123]'
         down_dict = {1: '1st', 2: '2nd', 3: '3rd', 4: '4th'}
         togo = str(play_df.yardsToGo) if (play_df.yardsToGo != play_df.yardlineNumber) else 'Goal'
-        self._title = (f'({play_df.quarter}Q {play_df.gameClock[:-3]}) {play_df.possessionTeam} Possession, '
+        self._title = (f'({play_df.quarter}Q {play_df.gameClock}) {play_df.possessionTeam} Possession, '
                        + f'{down_dict[int(play_df.down)]} & {togo} at {play_df.yardlineSide} {play_df.yardlineNumber} '
                        + f'[{game_df.gameDate}, {game_df.visitorTeamAbbr} @ {game_df.homeTeamAbbr}] '
                        + f'[gameId={game_id}, playId={play_id}]')
