@@ -173,9 +173,13 @@ def prep_get_tackle_metrics(track_df: pd.DataFrame, play_df: pd.DataFrame, tackl
     s_downfield_tackle_m1 = comp_df.s_downfield.loc[tackle_frame_id - 1]  # get downfield velocity the frame before the tackle
     s_downfield_delta = s_downfield_tackle_m1 - s_downfield_neutral  # >0: going downfield faster than neutral interaction (bad for defense)
     s_contact = comp_df.s.loc[contact_frame_id]  # speed at contact (magnitude)
-
+    s_downfield_contact = comp_df.s_downfield.loc[contact_frame_id]
+    s_downfield_contact_t = comp_df.s_downfield_t.loc[contact_frame_id]
     # - Wrap up: Gap at tackle event - #
     gap_tackle = comp_df.gap.loc[tackle_frame_id]
+
+    # - other metrics for classification
+
 
     # send back metrics
     return pd.Series([contact_frame_id, 
@@ -188,7 +192,9 @@ def prep_get_tackle_metrics(track_df: pd.DataFrame, play_df: pd.DataFrame, tackl
                       w_carrier,
                       w_tackler,
                       s_downfield_delta,
-                      s_contact
+                      s_contact,
+                      s_downfield_contact,
+                      s_downfield_contact_t
                       ], 
                       index=['contactFrameId',
                              'tackleFrameId',
@@ -200,7 +206,10 @@ def prep_get_tackle_metrics(track_df: pd.DataFrame, play_df: pd.DataFrame, tackl
                              'w_carrier',
                              'w_tackler',
                              's_downfield_delta',
-                             's_contact'
+                             
+                             's_contact',
+                             's_downfield_contact',
+                             's_downfield_contact_t'
                              ],
                      dtype=object
                     )
